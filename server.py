@@ -242,7 +242,7 @@ class AppHandler(SimpleHTTPRequestHandler):
             self._firewall_deny(429, "IP blocked temporarily by firewall.", retry_after)
             return False
 
-        if method not in {"GET", "POST"}:
+        if method not in {"GET", "POST", "HEAD", "OPTIONS"}:
             is_blocked, wait_for = firewall_register_strike(ip, "invalid_method", self.path, method)
             self._firewall_deny(429 if is_blocked else 405, "Method not allowed.", wait_for)
             return False
@@ -479,10 +479,16 @@ class AppHandler(SimpleHTTPRequestHandler):
         self._firewall_check_request("PATCH")
 
     def do_OPTIONS(self):
-        self._firewall_check_request("OPTIONS")
+        if not self._firewall_check_request("OPTIONS"):
+            return
+        self.send_response(204)
+        self.send_header("Allow", "GET, POST, HEAD, OPTIONS")
+        self.end_headers()
 
     def do_HEAD(self):
-        self._firewall_check_request("HEAD")
+        if not self._firewall_check_request("HEAD"):
+            return
+        super().do_HEAD()
 
     def handle_register(self):
         allowed, retry_after = consume_rate_limit(
@@ -630,8 +636,8 @@ class AppHandler(SimpleHTTPRequestHandler):
 def run():
     init_db()
     port = int(os.environ.get("PORT", "8000"))
-    server = HTTPServer(("127.0.0.1", port), AppHandler)
-    print(f"Server running on http://127.0.0.1:{port}")
+    server = HTTPServer(("0.0.0.0", port), AppHandler)
+    print(f"Server running on http://0.0.0.0:{port}")
     server.serve_forever()
 
 
