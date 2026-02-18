@@ -69,6 +69,7 @@ body {
   color: var(--text);
   background: radial-gradient(circle at top left, var(--hero-a), var(--bg));
   line-height: 1.7;
+  min-height: 100vh;
 }
 
 .container {
@@ -91,6 +92,32 @@ body {
 .hero {
   background: linear-gradient(140deg, var(--hero-a) 0%, var(--hero-b) 50%, var(--hero-c) 100%);
   padding-bottom: 64px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before,
+.hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.hero::before {
+  width: 440px;
+  height: 440px;
+  inset-inline-end: -140px;
+  top: -180px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand) 14%, transparent), transparent 65%);
+}
+
+.hero::after {
+  width: 360px;
+  height: 360px;
+  inset-inline-start: -130px;
+  bottom: -210px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--text) 10%, transparent), transparent 64%);
 }
 
 .nav {
@@ -98,6 +125,8 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 24px 0;
+  position: relative;
+  z-index: 1;
 }
 
 .nav-actions {
@@ -130,6 +159,8 @@ body {
 
 .hero-content {
   padding-top: 28px;
+  position: relative;
+  z-index: 1;
 }
 
 .tag {
@@ -171,7 +202,7 @@ h2 {
   padding: 11px 20px;
   border-radius: 12px;
   font-weight: 700;
-  transition: 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .btn:focus-visible,
@@ -184,6 +215,7 @@ summary:focus-visible {
 .btn:hover {
   transform: translateY(-2px);
   background: var(--brand-dark);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.2);
 }
 
 .btn-small {
@@ -198,6 +230,7 @@ summary:focus-visible {
 
 .section {
   padding: 62px 0;
+  position: relative;
 }
 
 .section-alt {
@@ -225,6 +258,16 @@ h3 {
   border-radius: 16px;
   padding: 18px;
   box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover,
+.feature:hover,
+.course-option:hover,
+.lesson-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
 }
 
 .card h4 {
@@ -248,6 +291,8 @@ h3 {
   border-radius: 16px;
   padding: 18px;
   box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .feature h4 {
@@ -269,6 +314,7 @@ h3 {
   border-inline-start: 5px solid var(--brand);
   padding: 14px 16px;
   border-radius: 12px;
+  box-shadow: var(--shadow);
 }
 
 .timeline-item span {
@@ -342,6 +388,7 @@ h3 {
   border-radius: 16px;
   box-shadow: var(--shadow);
   padding: 20px;
+  border: 1px solid var(--border);
 }
 
 .quote p {
@@ -395,6 +442,8 @@ h3 {
   border-radius: 22px;
   padding: 26px;
   box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(4px);
 }
 
 .auth-card h2 {
@@ -458,6 +507,8 @@ h3 {
   border-radius: 16px;
   box-shadow: var(--shadow);
   padding: 20px;
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .course-option h3 {
@@ -496,6 +547,7 @@ h3 {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .lesson-card h4 {
@@ -551,6 +603,29 @@ h3 {
 .theme-btn.active {
   background: var(--brand);
   color: var(--btn-text);
+}
+
+.reveal {
+  animation: reveal-up 0.55s ease both;
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media (max-width: 900px) {

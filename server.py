@@ -1,4 +1,5 @@
 import hashlib
+import ipaddress
 import json
 import os
 import re
@@ -19,6 +20,7 @@ NAME_RE = re.compile(r"^[\w\s\u0600-\u06FF'.-]{3,80}$")
 PASSWORD_MIN_LENGTH = 10
 PASSWORD_ITERATIONS = 260000
 SESSION_TTL_HOURS = 12
+MAX_SESSIONS_PER_USER = 5
 MAX_JSON_BODY_BYTES = 16 * 1024
 MAX_URI_LENGTH = 2048
 MAX_HEADER_VALUE_LENGTH = 2048
@@ -203,6 +205,14 @@ def looks_malicious(text):
     return False
 
 
+def normalize_client_ip(raw_ip):
+    try:
+        parsed = ipaddress.ip_address(raw_ip.strip())
+        return str(parsed)
+    except ValueError:
+        return None
+
+
 class AppHandler(SimpleHTTPRequestHandler):
     server_version = "KarizmaHTTP/1.0"
 
@@ -225,7 +235,15 @@ class AppHandler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def _get_ip(self):
-        return self.client_address[0] if self.client_address else "0.0.0.0"
+        forwarded_for = self.headers.get("X-Forwarded-For", "")
+        if forwarded_for:
+            for candidate in forwarded_for.split(","):
+                ip = normalize_client_ip(candidate)
+                if ip:
+                    return ip
+
+        direct_ip = self.client_address[0] if self.client_address else "0.0.0.0"
+        return normalize_client_ip(direct_ip) or "0.0.0.0"
 
     def _firewall_deny(self, status_code, reason, retry_after=0):
         ip = self._get_ip()
@@ -337,7 +355,10 @@ class AppHandler(SimpleHTTPRequestHandler):
         return jar
 
     def _session_cookie(self, token):
-        secure_cookie = os.environ.get("COOKIE_SECURE", "0") == "1"
+        secure_cookie = (
+            os.environ.get("COOKIE_SECURE", "1") == "1"
+            or self.headers.get("X-Forwarded-Proto", "").lower() == "https"
+        )
         parts = [
             f"sid={token}",
             "HttpOnly",
@@ -350,7 +371,10 @@ class AppHandler(SimpleHTTPRequestHandler):
         return "; ".join(parts)
 
     def _clear_session_cookie(self):
-        secure_cookie = os.environ.get("COOKIE_SECURE", "0") == "1"
+        secure_cookie = (
+            os.environ.get("COOKIE_SECURE", "1") == "1"
+            or self.headers.get("X-Forwarded-Proto", "").lower() == "https"
+        )
         parts = ["sid=; HttpOnly", "Path=/", "SameSite=Strict", "Max-Age=0"]
         if secure_cookie:
             parts.append("Secure")
@@ -377,6 +401,21 @@ class AppHandler(SimpleHTTPRequestHandler):
                     self._get_ip(),
                     self.headers.get("User-Agent", "")[:255],
                 ),
+            )
+            # Keep only latest sessions for each user.
+            conn.execute(
+                """
+                DELETE FROM sessions
+                WHERE user_id = ?
+                AND id NOT IN (
+                    SELECT id
+                    FROM sessions
+                    WHERE user_id = ?
+                    ORDER BY created_at DESC
+                    LIMIT ?
+                )
+                """,
+                (user_id, user_id, MAX_SESSIONS_PER_USER),
             )
             conn.commit()
         finally:
@@ -585,6 +624,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             conn.close()
 
         if row is None:
+            # Keeps timing closer to invalid-password path.
+            hash_password(password, "0" * 32, PASSWORD_ITERATIONS)
             return self._json_response(401, {"error": "بيانات الدخول غير صحيحة."})
 
         expected_hash = hash_password(password, row["salt"], int(row["password_iter"]))
@@ -613,9 +654,14 @@ class AppHandler(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-store")
+        self.send_header("Pragma", "no-cache")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+        self.send_header("Cross-Origin-Opener-Policy", "same-origin")
+        self.send_header("Cross-Origin-Resource-Policy", "same-origin")
+        self.send_header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
         self.send_header(
             "Content-Security-Policy",
             (
