@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول | كاريزما+</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page">
+  <main class="auth-card">
+    <h2>تسجيل الدخول</h2>
+    <p class="auth-note">أدخل بياناتك لتسجيل الدخول إلى حسابك ومتابعة دروس الدورة.</p>
+
+    <form class="auth-form" id="loginForm">
+      <label for="loginEmail">الإيميل</label>
+      <input id="loginEmail" type="email" placeholder="example@email.com" required>
+
+      <label for="loginPassword">كلمة المرور</label>
+      <div class="password-row">
+        <input id="loginPassword" type="password" placeholder="********" minlength="6" required>
+        <button type="button" id="togglePassword" class="btn btn-ghost btn-small">إظهار</button>
+      </div>
+
+      <button class="btn" type="submit">دخول</button>
+    </form>
+
+    <p id="loginMessage" class="auth-message" aria-live="polite"></p>
+    <a class="back-link" href="register.html">ليس لديك حساب؟ إنشاء حساب</a>
+    <a class="back-link" href="index.html">رجوع للصفحة الرئيسية</a>
+  </main>
+
+  <script src="theme.js"></script>
+  <script src="login.js"></script>
+</body>
+</html>

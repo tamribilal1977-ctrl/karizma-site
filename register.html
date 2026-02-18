@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>انشاء حساب | كاريزما+</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page">
+  <main class="auth-card">
+    <h2>انشاء حساب جديد</h2>
+    <p class="auth-note">سجّل حسابك لتتمكن من دخول الدروس ومتابعة تقدمك.</p>
+
+    <form class="auth-form" id="registerForm">
+      <label for="registerName">الاسم الكامل</label>
+      <input id="registerName" type="text" minlength="3" placeholder="مثال: محمد بن علي" required>
+
+      <label for="registerEmail">الايميل</label>
+      <input id="registerEmail" type="email" placeholder="example@email.com" required>
+
+      <label for="registerPassword">كلمة المرور</label>
+      <div class="password-row">
+        <input id="registerPassword" type="password" minlength="10" placeholder="********" required>
+        <button type="button" id="toggleRegisterPassword" class="btn btn-ghost btn-small">اظهار</button>
+      </div>
+
+      <label for="registerPasswordConfirm">تأكيد كلمة المرور</label>
+      <input id="registerPasswordConfirm" type="password" minlength="10" placeholder="********" required>
+
+      <button class="btn" type="submit">انشاء الحساب</button>
+    </form>
+
+    <p id="registerMessage" class="auth-message" aria-live="polite"></p>
+    <a class="back-link" href="login.html">عندك حساب؟ سجل الدخول</a>
+  </main>
+
+  <script src="theme.js"></script>
+  <script src="register.js"></script>
+</body>
+</html>
